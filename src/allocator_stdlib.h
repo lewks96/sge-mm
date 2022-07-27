@@ -12,9 +12,13 @@
 
 namespace mm {
 
+
+#define TRACK_ALLOCATIONS
+
+
 class allocator_stdlib : public allocator_interface {
 private:
-#ifndef NDEBUG
+#ifdef TRACK_ALLOCATIONS
     // for 'profiling'
     static constexpr size_t PreAllocatedDescriptors = 64;
     struct alloc_desc {
@@ -28,7 +32,7 @@ private:
 
     inline void mark_alloc(void* ptr, size_t size)
     {
-#ifndef NDEBUG
+#ifdef TRACK_ALLOCATIONS
         alloc_desc allocDesc {};
         allocDesc.ptr = ptr;
         allocDesc.size = size;
@@ -41,7 +45,7 @@ private:
 
     inline void mark_free(void* ptr)
     {
-#ifndef NDEBUG
+#ifdef TRACK_ALLOCATIONS
         if (ptr) {
             std::scoped_lock<std::mutex> lock(m_descriptorsLock);
             for (auto& elem : m_descriptors) {
@@ -57,14 +61,14 @@ private:
 public:
     allocator_stdlib()
     {
-#ifndef NDEBUG
+#ifdef TRACK_ALLOCATIONS
         m_descriptors.reserve(PreAllocatedDescriptors);
 #endif
     }
 
     ~allocator_stdlib() override
     {
-#ifndef NDEBUG
+#ifdef TRACK_ALLOCATIONS
         size_t allocations = 0;
         for (auto& elem : m_descriptors) {
             if (!elem.hasBeenFreed) {
