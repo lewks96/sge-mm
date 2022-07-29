@@ -5,11 +5,9 @@
  *  mm-sge - Simple Game Engine Memory Manager
  */
 
-void test_stdlib_allocator()
+void test_allocator(std::unique_ptr<mm::allocator_interface> allocator)
 {
-    auto allocator = mm::create_stdlib_allocator();
     constexpr size_t IterCount = 1024;
-
     for (auto i = 0; i < IterCount; i++) {
         auto p = allocator->allocate(i);
         if (p) {
@@ -23,6 +21,10 @@ void test_stdlib_allocator()
 
 int main()
 {
-    test_stdlib_allocator();
+    constexpr size_t DefaultAllocatorSize = 1024 * 1024 * 32;
+
+    auto allocator = mm::create_pool_allocator(DefaultAllocatorSize);
+    test_allocator(std::move(allocator));
+
     return 0;
 }
